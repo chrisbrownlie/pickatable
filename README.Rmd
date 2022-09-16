@@ -1,0 +1,43 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+# abfR
+
+```{r, include = FALSE}
+# Set some variables for the info badges
+pkg_version <- paste(pkgload::pkg_version(), collapse = ".")
+covr_pct <- covr::percent_coverage(covr::package_coverage())
+coverage_status <- ifelse(covr_pct<50, "red", ifelse(covr_pct<75, "yellow", "green"))
+
+# Get badges based on variables (converted to png because Azure Devops doesn't render SVG)
+download.file(url = paste0("https://img.shields.io/badge/version-", pkg_version, "-blue.svg"),
+              destfile = "inst/www/pkg-version-badge.svg")
+rsvg::rsvg_png(svg = "inst/www/pkg-version-badge.svg",
+               file = "inst/www/pkg-version-badge.png")
+rsvg::rsvg_png(svg = "inst/www/pkg-version-badge.svg",
+               file = "vignettes/getting-started-assets/pkg-version-badge.png")
+
+download.file(url = paste0("https://img.shields.io/badge/test%20coverage-", round(covr_pct,1), "%25-", coverage_status, ".svg"),
+              destfile = "inst/www/covr-coverage-badge.svg")
+rsvg::rsvg_png(svg = "inst/www/covr-coverage-badge.svg",
+               file = "inst/www/covr-coverage-badge.png")
+rsvg::rsvg_png(svg = "inst/www/covr-coverage-badge.svg",
+               file = "vignettes/getting-started-assets/covr-coverage-badge.png")
+```
+
+<!-- badges: start -->
+![version: num](inst/www/pkg-version-badge.png)
+![lifecycle: experimental](inst/www/lifecycle-experimental-orange.png)
+![covr coverage](inst/www/covr-coverage-badge.png)
+<!-- badges: end -->
+
+The pickatable R package contains an R Shiny app that allows users to compare between the most popular R packages for creating tables in shiny/rmarkdown content.
+
+# Project Structure
+The project follows a standard R package structure and naming conventions inspired by the [golem framework](https://engineering-shiny.org/golem.html).
+
+# Contacts
+Contact Chris Brownlie for more info.

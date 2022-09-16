@@ -1,0 +1,31 @@
+.tab-title {
+  font-family: Segoe UI;
+  margin-top: 0 !important;
+}
+
+.table-div {
+  border: 1px solid;
+  padding: 1%;
+}
+
+.table-div::before {
+  font-weight: bold;
+  content: "Preview";
+  top: -15px;
+}
+
+.code-div {
+  border: 1px solid;
+  text-align: center;
+}
+
+.code-div::before {
+  font-weight: bold;
+  content: "Code";
+}
+
+.options-div {
+  width: 95%;
+  margin: 0 auto;
+  padding-top: 3%;
+}
