@@ -1,0 +1,28 @@
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+# pickatable
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+The pickatable R package contains an R Shiny app that allows users to
+compare between the most popular R packages for creating tables in
+shiny/rmarkdown content.
+
+# Project Structure
+
+The project follows a standard R package structure and naming
+conventions inspired by the [golem
+framework](https://engineering-shiny.org/golem.html).
+
+# Packages considered
+
+The following table packages will be compared:
+
+-   DT
+-   flextable
+-   gt
+-   kable (/kableExtra)
+-   plotly
+-   reactable
