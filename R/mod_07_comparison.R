@@ -82,17 +82,17 @@ comparison_server <- function(id,
                  })
                  
                  output$dt_table <- DT::renderDT({
-                   data[["dt_table"]]()
+                   ad[["DT"]]()$plot()
                  })
                  output$flextable_table <- renderUI({
-                   data[["flextable_table"]]()
+                   ad[["flextable"]]()$plot()
                  })
                  output$gt_table <- gt::render_gt({
-                   data[["gt_table"]]()
+                   ad[["gt"]]()$plot()
                  })
                  output$kable_table <- function() {data[["kable_table"]]()}
                  output$plotly_table <- plotly::renderPlotly({
-                   data[["plotly_table"]]()
+                   ad[["plotly"]]()$plot()
                  })
                })
 }

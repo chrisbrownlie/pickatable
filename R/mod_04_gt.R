@@ -59,16 +59,15 @@ gt_server <- function(id,
                module = function(input,
                                  output,
                                  session,
-                                 data = app_data) {
+                                 ad = app_data) {
                  ns <- session$ns
                  
-                 data$gt_table <- reactive({
-                   get(data[["dataset"]]) |>
-                     head() |>
-                     gt::gt()
-                 })
+                 ad[["gt"]] <- Table$new(fun = "gt",
+                                         pkg = "gt",
+                                         data = ad[["dataset"]])$reactive()
+                 
                  output$table <- gt::render_gt({
-                   data[["gt_table"]]()
+                   ad[["gt"]]()$plot()
                  })
                  
                })

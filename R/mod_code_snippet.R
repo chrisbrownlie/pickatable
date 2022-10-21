@@ -23,28 +23,12 @@ code_snippet_server <- function(id,
                  ns <- session$ns
                  
                  output$snippet <- renderPrint({
-                   code_vec <- def() |>
-                     strsplit(split = "(?<=, )",
-                              perl = TRUE) |>
-                     unlist()
-                   formatted_vec <- purrr::imap(code_vec, function(x, i, cv = code_vec){
-                     n_pre_brackets <- ifelse(i==1,
-                                              0,
-                                              length(grep("\\(", cv[1:i-1]))-length(grep("\\)", cv[1:i-1])))
-                     # At the start of each line, add a number of tab spaces equivalent to
-                     # the number of preceding open brackets minus the number of preceding 
-                     # closing brackets
-                     gsub(x, 
-                          pattern = "^(.)", 
-                          replacement = paste0(strrep("\t", n_pre_brackets), "\\1"))
-                   })
-                   
-                   formatted_vec |>
-                     paste(collapse = "\n") |>
-                     cat()
+                   req(def)
+                   def()$get()
                  })
                  output$button <- renderUI({
-                   snip_def <- gsub(def(),
+                   req(def)
+                   snip_def <- gsub(def()$get(),
                                     pattern = "(?<=, )", 
                                     replacement = "\\1\n",
                                     perl = TRUE) |>

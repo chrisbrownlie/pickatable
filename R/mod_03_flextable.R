@@ -56,17 +56,14 @@ flextable_server <- function(id,
                module = function(input,
                                  output,
                                  session,
-                                 data = app_data) {
+                                 ad = app_data) {
                  ns <- session$ns
                  
-                 data$flextable_table <- reactive({
-                   get(data[["dataset"]]) |>
-                     head() |>
-                     flextable::flextable() |>
-                     flextable::htmltools_value()
-                 })
+                 ad[["flextable"]] <- Table$new(fun = "flextable",
+                                                pkg = "flextable",
+                                                data = ad[["dataset"]])$reactive()
                  output$table <- renderUI({
-                   data[["flextable_table"]]()
+                   ad[["flextable"]]()$plot()
                  })
                  
                })

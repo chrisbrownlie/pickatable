@@ -40,10 +40,10 @@ about_server <- function(id,
                module = function(input,
                                  output,
                                  session,
-                                 data = app_data) {
+                                 ad = app_data) {
                  ns <- session$ns
                  
-                 observe({data[["dataset"]] <- input$opt_dataset})
+                 observe({ad[["dataset"]] <- input$opt_dataset})
                  
                })
 }

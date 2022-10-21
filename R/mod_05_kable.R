@@ -56,15 +56,14 @@ kable_server <- function(id,
                module = function(input,
                                  output,
                                  session,
-                                 data = app_data) {
+                                 ad = app_data) {
                  ns <- session$ns
                  
-                 data$kable_table <- reactive({
-                   get(data[["dataset"]]) |>
-                     head() |>
-                     kableExtra::kbl()
-                 })
-                 output$table <- function() {data[["kable_table"]]()}
+                 ad[["kable"]] <- Table$new(fun = "kbl",
+                                            pkg = "kableExtra",
+                                            x = ad[["dataset"]])$reactive()
+
+                 output$table <- function() {ad[["kable"]]()$plot()}
                  
                })
 }

@@ -59,17 +59,18 @@ plotly_server <- function(id,
                module = function(input,
                                  output,
                                  session,
-                                 data = app_data) {
+                                 ad = app_data) {
                  ns <- session$ns
                  
-                 data$plotly_table <- reactive({
-                   get(data[["dataset"]]) |>
-                     plotly::plot_ly(type = "table",
-                                     header = list(values = names(get(data[["dataset"]]))), 
-                                     cells = list(values = unname(get(data[["dataset"]]))))
-                 })
+                 ad[["plotly"]] <- Table$new(fun = "plot_ly",
+                                             pkg = "plotly",
+                                             data = ad[["dataset"]],
+                                             type = "table",
+                                             header = list(values = names(get(ad[["dataset"]]))), 
+                                             cells = list(values = unname(get(ad[["dataset"]]))))$reactive()
+
                  output$table <- plotly::renderPlotly({
-                   data[["plotly_table"]]()
+                   ad[["plotly_table"]]()$plot()
                  })
                  
                })

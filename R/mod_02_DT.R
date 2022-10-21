@@ -89,41 +89,40 @@ dt_server <- function(id,
                module = function(input,
                                  output,
                                  session,
-                                 data = app_data) {
+                                 ad = app_data) {
                  ns <- session$ns
                  
                  # Create DT table object
-                 data[["dt_table"]] <- reactiveValues(
-                   pkg = "DT",
-                   definition = reactive({
-                     paste0(
-                         "DT::datatable(",
-                         parse_args(c("data" = data[["dataset"]],
-                                      "rownames" = input$rownames,
-                                      "colnames" = paste_list_as_vector(input$colnames),
-                                      "caption" = in_quotes(input$caption),
-                                      "filter" = in_quotes(input$filter),
-                                      "selection" = in_quotes(input$selection),
-                                      "editable" = in_quotes(table_editable()),
-                                      "callback" = paste0("DT::JS(", in_quotes(table_callback()), ")"))),
-                         ")"
-                     )
-                   })
-                 )
+                 observeEvent(ad[["dataset"]], {
+                   if (ad[["dataset"]] == "iris") {
+                     ad[["DT"]] <- Table$new(fun = "datatable",
+                                             pkg = "DT",
+                                             data = iris)$reactive()
+                   } else if (ad[["dataset"]] == "mtcars") {
+                     ad[["DT"]] <- Table$new(fun = "datatable",
+                                             pkg = "DT",
+                                             data = mtcars)$reactive()
+                   } else {
+                     ad[["DT"]] <- Table$new(fun = "datatable",
+                                             pkg = "DT",
+                                             data = airquality)$reactive()
+                   }
+                 })
                  
                  code_snippet_server("DT",
-                                     table_def = data$dt_table$definition)
+                                     table_def = ad[["DT"]])
                  
                  # Render table
                  output$table <- DT::renderDT({
-                   data$dt_table$definition() |>
-                     rlang::parse_expr() |>
-                     rlang::eval_bare()
+                   req(ad[["DT"]])
+                   ad[["DT"]]()$plot()
                  })
                  
+                 # Show rownames
+                 observeEvent(input$rownames, ad[["DT"]]()$set(rownames = !!input$rownames))
                  
-                 # Options
-                 column_names <- reactive(names(get(data[["dataset"]])))
+                 # Hide/show columns ('options' argument)
+                 column_names <- reactive(names(get(ad[["dataset"]])))
                  output$colnames_ui <- renderUI({
                    selectInput(ns("colnames"),
                                label = "Columns to show:",
@@ -132,22 +131,37 @@ dt_server <- function(id,
                                multiple = TRUE)
                  })
                  
-                 table_editable <- reactiveVal(FALSE)
-                 observeEvent(input$editable_choice, {
-                   if (input$editable_choice != "custom") {
-                     table_editable(input$editable_choice)
-                   } else {
-                     table_editable(FALSE)
+                 # Single observer to set options
+                 observe({
+                   # Iteratively add to options list
+                   options_list <- list()
+                   
+                   # Hide/view columns
+                   view_cols <- match(input$colnames, column_names())
+                   hide_cols <- setdiff(seq_along(column_names()), view_cols)-as.numeric(input$rownames==F)
+                   if (length(hide_cols)) {
+                     options_list["columnDefs"] <- list(list(list(visible=FALSE, targets=hide_cols)))
+                   }
+                   
+                   isolate(ad[["DT"]]())$set(options = NULL)
+                   if (length(options_list)) {
+                     isolate(ad[["DT"]]())$set(options = !!options_list)
                    }
                  })
                  
-                 table_callback <- reactive({
-                   if (input$editable_choice == "custom") {
-                     'table.on("dblclick.dt","tr", function() {alert("You have double clicked a row, triggering any action you want!")})'
+                 # Interaction - double click
+                 table_editable <- reactiveVal(FALSE)
+                 observeEvent(input$editable_choice, {
+                   if (input$editable_choice != "custom") {
+                     ad[["DT"]]()$set(editable = !!input$editable_choice)
                    } else {
-                     "return table;"
+                     ad[["DT"]]()$set(editable = NULL,
+                                      callback = DT::JS('table.on("dblclick.dt","tr", function() {alert("You have double clicked a row, triggering any action you want!")})'))
                    }
                  })
+                 
+                 # Caption
+                 observe(isolate(ad[["DT"]]())$set(caption = !!input$caption))
                  
                })
 }

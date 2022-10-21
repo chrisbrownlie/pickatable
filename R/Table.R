@@ -1,57 +1,109 @@
 #' Table R6 class
 #' 
-#' Class for each table, using R6 so that only one version of each table is created 
-#' in each app session.
+#' Reactive-aware R6 class for a table that can be used to access its definition
+#' and other metadata.
+#' 
+#' Reactive-awareness inspired by discussion here: https://community.rstudio.com/t/good-way-to-create-a-reactive-aware-r6-class/84890/8
 #' 
 #' @export
 Table <- R6::R6Class(
   classname = "Table",
   
-  public = list(
-    
-    #' @field pkg_name the name of the package used to create the table
-    pkg_name = NULL,
-    
-    #' @field options a list of various options that can be used in the
-    #' table definition
-    options = list(),
-    
-    #' @field data the 
-    
-    #' @field definition the table definition as an rlang expr, using the
-    #' options field
+  private = list(
+    fun = "",
+    pkg = "",
     definition = NULL,
+    arguments = NULL,
+    
+    # Reactivity
+    reactiveDep = NULL,
+    reactiveExpr = NULL,
+    invalidate = function() {
+      private$count <- private$count+1
+      private$reactiveDep(private$count)
+      invisible()
+    },
+    count = 0
+  ),
+  
+  public = list(
     
     #' @description Initialise a new table object
     #' 
-    #' @param pkg the name of the package used to create the table
-    #' @param definition the default definition of the table
-    #' @param options a list of options that can be referenced in the definition of the table
+    #' @param pkg the name of the package that the table function is from
+    #' @param fun the name of the function for creating the table
+    #' @param ... arguments to pass to the table
     #' 
     #' @return a new object of class Table
-    initialise = function(pkg,
-                          definition,
-                          options) {
+    initialize = function(pkg,
+                          fun,
+                          ...) {
+  
+      stopifnot("pkg must be a string" = is.character(pkg))
+      private$pkg <- pkg
       
-      stopifnot("pkg must be a string" = is.character(pkg),
-                "pkg must be installed" = pkg %in% loadedNamespaces())
-      self$pkg_name <- pkg
+      stopifnot("fun must be a string" = is.character(fun))
+      private$fun <- fun
+
+      # Quote all definition elements
+      private$definition <- enexprs(...)
       
-      stopifnot("definition must be an rlang expression" = rlang::is_expression(definition))
-      self$definition <- definition
+      # Get all possible arguments
+      private$arguments <- rlang::fn_fmls_names(get(fun, envir = rlang::ns_env(pkg)))
       
-      stopifnot("options must be a list" = is.list(options))
-      self$options <- options
+      private$reactiveDep <- function(x) NULL
+      invisible(self)
     },
     
-    #' @description get the current state of the table
+    reactive = function() {
+      # Ensure the reactive stuff is initialized.
+      if (is.null(private$reactiveExpr)) {
+        private$reactiveDep <- reactiveVal(0)
+        private$reactiveExpr <- reactive({
+          private$reactiveDep()
+          self
+        })
+      }
+      private$reactiveExpr
+    },
+    
+    #' @description get valid named arguments as vector
     #' 
-    #' @return the table object with its current options and definition
-    get = function() {
-      rlang::eval(self$definition)
+    #' @return all possible named arguments
+    named_args = function() {
+      private$arguments
+    },
+    
+    #' @description overwrite the current table definition
+    #' 
+    #' @return saves the new definition of the table arguments
+    set = function(...) {
+      private$definition <- modifyList(private$definition, enexprs(...))
+      private$invalidate()
+    },
+    
+    #' @description get the current table definition
+    #' 
+    #' @param raw if TRUE, return list of arguments else return call that can be used to
+    #' create table
+    #' 
+    #' @return the current definition of the table (code needed to plot/run it) as a call
+    get = function(raw = F) {
+      if (raw) {
+        # List of arguments
+        private$definition
+      } else {
+        # Code to create table
+        rlang::call2(private$fun, !!!private$definition, .ns = private$pkg)
+      }
+    },
+    
+    #' @description plot the current table
+    #' 
+    #' @return the table object
+    plot = function() {
+      rlang::eval_bare(self$get())
     }
     
-  ),
-  
-  private = list()
+  )
 )
